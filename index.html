@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Examiner Code Generator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background: #f0f0f0;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+
+      input[type="text"] {
+        width: 400px;
+        padding: 5px;
+      }
+
+      button {
+        margin-top: 10px;
+        padding: 10px;
+        font-weight: bold;
+      }
+
+      #result {
+        margin-top: 20px;
+        font-size: 1.2em;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Examiner Code Generator</h1>
+    <p>Enter the PC ID (e.g. <code>11-D3-AX-2C-01-59-A5-19</code>) and click "Generate Unlock Code". </p>
+    <label for="pcid">PC ID:</label>
+    <input type="text" id="pcid" value="" />
+    <br>
+    <button onclick="generateCode()">Generate Unlock Code</button>
+    <div id="result"></div>
+    <script>
+      function hexToByte(h) {
+        return parseInt(h, 16);
+      }
+
+      function byteToHex(b) {
+        let s = b.toString(16).toUpperCase();
+        return s.length === 1 ? "0" + s : s;
+      }
+
+      function rotateLeft(b, count) {
+        return ((b << count) | (b >>> (8 - count))) & 0xFF;
+      }
+      const numArray2 = [0xFF, 0x4F, 0x2A, 0xD9, 0x1B, 0x44, 0x30, 0x17];
+      const numArray3 = [0xC5, 0xA3, 0xF1, 0x56, 0x7B, 0x83, 0xD2, 0x8C];
+
+      function generateCode() {
+        const pcidStr = document.getElementById("pcid").value.trim();
+        const parts = pcidStr.split('-');
+        if (parts.length !== 8) {
+          document.getElementById("result").textContent = "Invalid PC ID format.";
+          return;
+        }
+        const pcBytes = parts.map(p => hexToByte(p));
+        const numArray1 = [
+          pcBytes[7],
+          pcBytes[6],
+          pcBytes[5],
+          pcBytes[4],
+          pcBytes[3],
+          pcBytes[2],
+          pcBytes[1],
+          pcBytes[0]
+        ];
+        const inputBytes = [];
+        for (let i = 0; i < 8; i++) {
+          const shiftCount = (numArray3[i] + 1) % 8;
+          const x = numArray1[i] ^ numArray2[i];
+          const original = rotateLeft(x, shiftCount);
+          inputBytes[i] = original;
+        }
+        const finalCode = [
+          byteToHex(inputBytes[7]),
+          byteToHex(inputBytes[6]),
+          byteToHex(inputBytes[5]),
+          byteToHex(inputBytes[4]),
+          byteToHex(inputBytes[3]),
+          byteToHex(inputBytes[2]),
+          byteToHex(inputBytes[1]),
+          byteToHex(inputBytes[0])
+        ].join("-");
+        document.getElementById("result").textContent = "Unlock Code: " + finalCode;
+      }
+    </script>
+  </body>
+</html>
